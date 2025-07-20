@@ -11,8 +11,11 @@ RUN git clone --recursive https://github.com/NVlabs/instant-ngp.git
 WORKDIR /app/instant-ngp
 RUN git submodule update --init --recursive
 
+RUN pip3 install --upgrade pip && pip3 install -r requirements.txt
+
 RUN cmake . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja && \
-    cmake --build build --target testbed && \
+    cmake --build build --target instant-ngp && \
     ls -lh build
 
-ENTRYPOINT ["/app/instant-ngp/build/testbed", "--mode", "nerf", "--scene"]
+#headless
+ENTRYPOINT ["/app/instant-ngp/build/instant-ngp", "--mode", "nerf", "--scene"]
