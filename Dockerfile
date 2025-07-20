@@ -25,4 +25,4 @@ RUN cmake . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja && \
     ls -lh build
 
 #headless
-ENTRYPOINT ["/app/instant-ngp/build/instant-ngp", "--mode", "nerf", "--scene"]
+ENTRYPOINT ["/app/instant-ngp/build/instant-ngp", "--mode", "nerf", "--scene", "--no-gui"]
