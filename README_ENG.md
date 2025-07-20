@@ -19,6 +19,60 @@ ai-instant-ngp/
 └── data/              # Datasets directory
 ```
 
+## 🐋 Dockerfile Details
+
+The container is based on CUDA 11.8 and sets up a headless environment for training:
+
+```dockerfile
+# CUDA Base
+FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+
+# Instant-NGP Dependencies
+- CMake and build tools
+- OpenGL and X11 libraries
+- Python 3 with headless support (xvfb)
+
+# Instant-NGP Setup
+- Version: 2.0 (stable tag)
+- Mode: nerf (Neural Radiance Fields)
+- Build: RelWithDebInfo with Ninja
+
+# Entrypoint
+Configured to run in NeRF mode:
+/app/instant-ngp/build/instant-ngp --mode nerf --scene
+```
+
+## ⚙️ Helm Chart
+
+The chart deploys a Kubernetes Job with the following features:
+
+```yaml
+# Default configuration (values.yaml)
+image:
+  repository: localhost:5000/nerf-trainer
+  tag: v0.1.0
+
+resources:
+  limits:
+    nvidia.com/gpu: 1
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+volume:
+  pvcName: pvc-datos-nerf
+  mountPath: /data
+
+# Dataset path
+scenePath: /data/fox
+```
+
+### Job Features:
+- Restart Policy: Never
+- PVC mounting for datasets
+- GPU support via nvidia-device-plugin
+- Guaranteed resources (CPU/memory/GPU)
+
 ## 🛠️ Local Usage
 
 ```bash
@@ -27,6 +81,22 @@ make build
 
 # Run locally (mounts ./data)
 make run
+
+# Example running with specific dataset
+docker run --rm -v $(PWD)/data:/data --gpus all nerf-trainer:v0.1.0 /data/my-scene
+```
+
+### 📁 Data Structure
+The container expects to find training images in the mounted directory:
+
+```
+/data/
+└── my-scene/
+    ├── transforms.json    # Camera parameters
+    └── images/           # Training images
+        ├── 000.jpg
+        ├── 001.jpg
+        └── ...
 ```
 
 ## ☁️ Kubernetes Deployment
@@ -55,3 +125,28 @@ Deployment can be monitored through:
 - ArgoCD dashboard
 - Kubernetes pod logs
 - GPU metrics via Prometheus
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+1. **GPU Not Available Error:**
+   ```
+   Error: no NVIDIA GPU device is present
+   ```
+   - Verify nvidia-device-plugin is installed in the cluster
+   - Check resource limits in values.yaml
+
+2. **Volume Error:**
+   ```
+   Unable to mount volumes: pvc "pvc-datos-nerf" not found
+   ```
+   - Ensure the PVC specified in values.yaml exists
+   - Check volume access permissions
+
+3. **Dataset Error:**
+   ```
+   Scene 'X' does not exist
+   ```
+   - Verify the path in scenePath exists in the PVC
+   - Check dataset structure (transforms.json + images/)
