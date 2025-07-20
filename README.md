@@ -6,7 +6,7 @@ This repository is available in multiple languages.
 ---
 
 🧠 **Entrenador de NeRF (Neural Radiance Fields) con Instant-NGP para workflows DevOps.**  
-`ai-instant-ngp` permite entrenar modelos NeRF usando la implementación CUDA-acelerada de NVIDIA.
+`ai-instant-ngp` permite entrenar modelos NeRF usando la implementación CUDA de NVIDIA.
 Pensado como un componente del ecosistema DevOps-AI, ofrece una solución containerizada para procesar datasets de imágenes y generar representaciones 3D neuronales.
 
 Funciona como servicio de entrenamiento NeRF dentro del lab, integrándose con Kubernetes mediante Helm y ArgoCD.
