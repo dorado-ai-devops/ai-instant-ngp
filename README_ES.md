@@ -38,8 +38,8 @@ FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 - Build: RelWithDebInfo con Ninja
 
 # Entrypoint
-Configurado para ejecutar en modo NeRF:
-/app/instant-ngp/build/instant-ngp --mode nerf --scene
+Configurado para ejecutar en modo NeRF y headless (entrypoint.sh):
+/app/instant-ngp/build/instant-ngp --mode nerf --no-gui --scene $DATA_PATH
 ```
 
 ## ⚙️ Helm Chart
@@ -148,5 +148,5 @@ El despliegue puede monitorearse a través de:
    ```
    Scene 'X' does not exist
    ```
-   - Comprobar que el path en scenePath existe en el PVC
+   - Comprobar que el path donde estan el dataset existe en el PVC
    - Verificar estructura del dataset (transforms.json + images/)
