@@ -10,13 +10,13 @@ NeRF (Neural Radiance Fields) trainer based on NVIDIA's [Instant-NGP](https://gi
 - Kubernetes + ArgoCD (for deployment)
 - Local container registry (default: localhost:5000)
 
-## 📦 Structure
+## 📦 Estructura
 
 ```
 ai-instant-ngp/
-├── Dockerfile          # Container with CUDA dependencies
-├── Makefile           # Build and deployment scripts
-└── data/              # Datasets directory
+├── Dockerfile          # Contenedor con dependencias CUDA
+├── Makefile           # Scripts de build y despliegue
+└── data/              # Directorio para datasets
 ```
 
 ## 🐋 Dockerfile Details
@@ -38,8 +38,8 @@ FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 - Build: RelWithDebInfo with Ninja
 
 # Entrypoint
-Configured to run in NeRF mode:
-/app/instant-ngp/build/instant-ngp --mode nerf --scene
+Configured to run in NeRF mode with headless support (entrypoint.sh):
+/app/instant-ngp/build/instant-ngp --mode nerf --no-gui --scene $DATA_PATH
 ```
 
 ## ⚙️ Helm Chart
@@ -119,12 +119,12 @@ make sync
 3. Updates Helm chart values
 4. Syncs deployment via ArgoCD
 
-## 📊 Monitoring
+## 📊 Monitoreo
 
-Deployment can be monitored through:
-- ArgoCD dashboard
-- Kubernetes pod logs
-- GPU metrics via Prometheus
+El despliegue puede monitorearse a través de:
+- Dashboard de ArgoCD
+- Logs del pod en Kubernetes
+- Métricas de GPU vía Prometheus
 
 ## 🔍 Troubleshooting
 
@@ -148,5 +148,5 @@ Deployment can be monitored through:
    ```
    Scene 'X' does not exist
    ```
-   - Verify the path in scenePath exists in the PVC
+   - Verify the dataset path exists in the PVC
    - Check dataset structure (transforms.json + images/)

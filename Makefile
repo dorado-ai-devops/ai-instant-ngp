@@ -4,7 +4,7 @@ REGISTRY       := localhost:5000
 HELM_VALUES    := ../devops-ai-lab/manifests/helm-instant-ngp/values.yaml
 ARGO_APP_NAME  := nerf-trainer
 
-.PHONY: all build tag push update-values sync release run
+.PHONY: all build tag push update-values release run
 
 all: release
 
@@ -23,10 +23,6 @@ update-values:
 	sed -i "s|^\(\s*repository:\s*\).*|\1$(REGISTRY)/$(IMAGE_NAME)|" $(HELM_VALUES)
 	# Actualiza la versión (tag)
 	sed -i "s|^\(\s*tag:\s*\).*|\1\"$(VERSION)\"|" $(HELM_VALUES)
-
-sync:
-	@echo "Sincronizando ArgoCD (app: $(ARGO_APP_NAME))…"
-	argocd app sync $(ARGO_APP_NAME)
 
 release: push update-values sync
 	@echo "Release completo: $(REGISTRY)/$(IMAGE_NAME):$(VERSION) desplegado y sincronizado con ArgoCD."
