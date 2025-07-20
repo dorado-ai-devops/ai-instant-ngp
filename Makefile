@@ -1,7 +1,7 @@
 IMAGE_NAME     := nerf-trainer
 VERSION        := v0.1.0
 REGISTRY       := localhost:5000
-HELM_VALUES    := ../devops-ai-lab/manifests/helm-nerf-trainer/values.yaml
+HELM_VALUES    := ../devops-ai-lab/manifests/helm-instant-ngp/values.yaml
 ARGO_APP_NAME  := nerf-trainer
 
 .PHONY: all build tag push update-values sync release run
