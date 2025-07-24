@@ -19,7 +19,7 @@ RUN git checkout tags/v2.0 -b build-v2.0 && \
 
 
 RUN pip3 install --upgrade pip && pip3 install -r requirements.txt
-
+RUN pip3 install commentjson numpy tqdm
 
 RUN cmake . -B build \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \

@@ -1,5 +1,5 @@
 IMAGE_NAME     := nerf-trainer
-VERSION        := v0.2.4
+VERSION        := v0.2.5
 REGISTRY       := localhost:5000
 HELM_VALUES    := ../devops-ai-lab/manifests/helm-instant-ngp/values.yaml
 ARGO_APP_NAME  := nerf-trainer
