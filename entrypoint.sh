@@ -6,7 +6,7 @@ N_STEPS=${N_STEPS:-15000}
 echo "==> Ejecutando Instant-NGP"
 if ! python3 /app/instant-ngp/scripts/run.py \
   --scene "$DATA_PATH" \
-  --n_steps 15000 \
+  --n_steps $N_STEPS \
   --save_snapshot "$DATA_PATH/model.ingp"; then
 
     echo "Entrenamiento fallido"
