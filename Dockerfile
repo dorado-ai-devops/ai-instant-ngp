@@ -25,7 +25,7 @@ RUN cmake . -B build \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DUSE_CUDA=ON \
     -G Ninja && \
-    cmake --build build --target instant-ngp -j12
+    cmake --build build --target instant-ngp pyngp -j12
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
