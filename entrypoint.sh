@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 ls /app/instant-ngp/build/pyngp.*
-export PYTHONPATH=/app/instant-ngp/build:$PYTHONPATH
+export PYTHONPATH=/app/instant-ngp/build:${PYTHONPATH:-}
 DATA_PATH=${DATA_PATH:-/data/lego-ds}  
 N_STEPS=${N_STEPS:-15000}
 echo "==> Ejecutando Instant-NGP"
