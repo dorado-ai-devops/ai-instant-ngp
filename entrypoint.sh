@@ -1,21 +1,19 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 DATA_PATH=${DATA_PATH:-/data/lego-ds}  
-
+N_STEPS=${N_STEPS:-15000}
 echo "==> Ejecutando Instant-NGP"
-if ! /app/instant-ngp/build/instant-ngp \
-  --mode nerf \
+if ! python3 /app/instant-ngp/scripts/run.py \
   --scene "$DATA_PATH" \
-  --no-gui \
-  --n_steps 30000 \
+  --n_steps 15000 \
   --save_snapshot "$DATA_PATH/model.ingp"; then
 
     echo "Entrenamiento fallido"
-    echo "Esperando 10 minutos para debug (PVC montado en ${DATA_PATH})..."
-    sleep 600
+    echo "Esperando 2 minutos para debug (PVC montado en ${DATA_PATH})..."
+    sleep 120
 
-    echo "🧹 Limpiando dataset tras fallo"
+    echo "Limpiando dataset tras fallo"
     rm -rf /tmp/tmp_cloned
     rm -rf "${DATA_PATH:?}/colmap"
     rm -rf "${DATA_PATH:?}/images"
@@ -24,4 +22,8 @@ if ! /app/instant-ngp/build/instant-ngp \
     exit 1
 fi
 
-echo "Entrenamiento completado correctamente"
+echo "Entrenamiento completado."
+ls -lh "${DATA_PATH}/model.ingp"
+echo "Modelo guardado en ${DATA_PATH}/model.ingp"
+
+
