@@ -19,9 +19,7 @@ push: tag
 
 update-values:
 	@echo "Actualizando Helm values para $(IMAGE_NAME)…"
-	# Actualiza el repositorio
 	sed -i "/^image:/,/^resources:/ s|^\(\s*repository:\s*\).*|\1$(REGISTRY)/$(IMAGE_NAME)|" $(HELM_VALUES)
-	# Actualiza SOLO el tag correspondiente al image principal
 	sed -i "/^image:/,/^resources:/ s|^\(\s*tag:\s*\).*|\1\"$(VERSION)\"|" $(HELM_VALUES)
 
 release: push update-values
