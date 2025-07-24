@@ -7,7 +7,9 @@ echo "==> Ejecutando Instant-NGP"
 if ! /app/instant-ngp/build/instant-ngp \
   --mode nerf \
   --scene "$DATA_PATH" \
-  --no-gui; then
+  --no-gui \
+  --n_steps 30000 \
+  --save_snapshot "$DATA_PATH/model.ingp"; then
 
     echo "Entrenamiento fallido"
     echo "Esperando 10 minutos para debug (PVC montado en ${DATA_PATH})..."
