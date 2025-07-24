@@ -1,5 +1,5 @@
 IMAGE_NAME     := nerf-trainer
-VERSION        := v0.2.6
+VERSION        := v0.2.7
 REGISTRY       := localhost:5000
 HELM_VALUES    := ../devops-ai-lab/manifests/helm-instant-ngp/values.yaml
 ARGO_APP_NAME  := nerf-trainer
@@ -19,10 +19,8 @@ push: tag
 
 update-values:
 	@echo "Actualizando Helm values para $(IMAGE_NAME)…"
-	# Actualiza el repositorio
-	sed -i "s|^\(\s*repository:\s*\).*|\1$(REGISTRY)/$(IMAGE_NAME)|" $(HELM_VALUES)
-	# Actualiza la versión (tag)
-	sed -i "s|^\(\s*tag:\s*\).*|\1\"$(VERSION)\"|" $(HELM_VALUES)
+	sed -i "/^image:/,/^resources:/ s|^\(\s*repository:\s*\).*|\1$(REGISTRY)/$(IMAGE_NAME)|" $(HELM_VALUES)
+	sed -i "/^image:/,/^resources:/ s|^\(\s*tag:\s*\).*|\1\"$(VERSION)\"|" $(HELM_VALUES)
 
 release: push update-values
 	@echo "Release completo: $(REGISTRY)/$(IMAGE_NAME):$(VERSION) desplegado y sincronizado con ArgoCD."
