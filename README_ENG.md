@@ -1,77 +1,90 @@
 # 🚀 ai-instant-ngp
 
-NeRF (Neural Radiance Fields) trainer based on NVIDIA's [Instant-NGP](https://github.com/NVlabs/instant-ngp), CUDA-optimized and containerized for Kubernetes deployment.
+Neural Radiance Field (NeRF) trainer based on NVIDIA’s [Instant‑NGP](https://github.com/NVlabs/instant-ngp), CUDA‑optimized and container‑ready for Kubernetes deployment. Includes a full NeRF training pipeline plus FastSR‑NeRF (low‑res NeRF + super‑resolution).
 
 ## 🔧 Requirements
 
-- Docker with NVIDIA support
-- CUDA 11.8+
-- Compatible GPU
-- Kubernetes + ArgoCD (for deployment)
-- Local container registry (default: localhost:5000)
+* Docker with NVIDIA runtime  
+* CUDA 12.9+  
+* Compatible GPU  
+* Kubernetes + Argo CD (for deployment)  
+* Local container registry (default: `localhost:5000`)
 
-## 📦 Estructura
+## 📦 Project Layout
 
 ```
 ai-instant-ngp/
-├── Dockerfile          # Contenedor con dependencias CUDA
-├── Makefile           # Scripts de build y despliegue
-└── data/              # Directorio para datasets
+├── Dockerfile          # CUDA image with all deps
+├── Makefile            # Build & deploy scripts
+├── Jenkinsfile         # CI/CD pipeline
+├── entrypoint.sh       # Container entry script
+├── train_ngp.py        # NeRF training
+├── render_pairs.py     # Generate LR/HR pairs
+└── train_sr.py         # Super‑resolution training
 ```
 
-## 🐋 Dockerfile Details
+## 🤖 Training Pipeline
 
-The container is based on CUDA 11.8 and sets up a headless environment for training:
+The complete process has three phases:
 
-```dockerfile
-# CUDA Base
-FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
-
-# Instant-NGP Dependencies
-- CMake and build tools
-- OpenGL and X11 libraries
-- Python 3 with headless support (xvfb)
-
-# Instant-NGP Setup
-- Version: 2.0 (stable tag)
-- Mode: nerf (Neural Radiance Fields)
-- Build: RelWithDebInfo with Ninja
-
-# Entrypoint
-Configured to run in NeRF mode with headless support (entrypoint.sh):
-/app/instant-ngp/build/instant-ngp --mode nerf --no-gui --scene $DATA_PATH
+### 1. NeRF Training (`train_ngp.py`)
+```bash
+python3 train_ngp.py   --data /path/scene   --transforms transforms.json   --steps 15000   --snapshot model.ingp
 ```
 
-## ⚙️ Helm Chart
+### 2. LR/HR Pair Generation (`render_pairs.py`)
+```bash
+python3 render_pairs.py   --snapshot model.ingp   --out /path/scene   --lr 960 540   --factor 2
+```
+Creates  
+* `renders_lr/` – low‑res renders  
+* `renders_hr/` – high‑res renders
 
-The chart deploys a Kubernetes Job with the following features:
-
-```yaml
-# Default configuration (values.yaml)
-image:
-  repository: localhost:5000/nerf-trainer
-  tag: v0.1.0
-
-resources:
-  limits:
-    nvidia.com/gpu: 1
-  requests:
-    cpu: 500m
-    memory: 1Gi
-
-volume:
-  pvcName: pvc-datos-nerf
-  mountPath: /data
-
-# Dataset path
-scenePath: /data/fox
+### 3. Super‑Resolution Training (`train_sr.py`)
+```bash
+python3 train_sr.py   --lr_dir /path/scene/renders_lr   --hr_dir /path/scene/renders_hr   --out sr_model.pth   --scale 2
 ```
 
-### Job Features:
-- Restart Policy: Never
-- PVC mounting for datasets
-- GPU support via nvidia-device-plugin
-- Guaranteed resources (CPU/memory/GPU)
+## 🔄 CI/CD Pipeline
+
+`Jenkinsfile` automates:
+
+1. **Build & Test**  
+   * Build Docker image  
+   * Integration tests  
+   * Push to registry
+2. **Argo CD Deploy**
+   ```yaml
+   # Helm values.yaml
+   job:
+     image:
+       repository: localhost:5000/nerf-trainer
+       tag: v0.1.0
+     resources:
+       limits:
+         nvidia.com/gpu: 1
+       requests:
+         cpu: 500m
+         memory: 4Gi
+     volume:
+       pvcName: pvc-nerf-data
+       mountPath: /data
+
+   training:
+     steps: 15000
+     superResolution:
+       enabled: true
+       scale: 2
+       resolution:
+         width: 960
+         height: 540
+   ```
+
+### Job Highlights
+* Restart policy: **Never**  
+* End‑to‑end NeRF + SR inside the Job  
+* GPU via `nvidia-device-plugin`  
+* Resource‑optimized for training
 
 ## 🛠️ Local Usage
 
@@ -79,74 +92,73 @@ scenePath: /data/fox
 # Build image
 make build
 
-# Run locally (mounts ./data)
-make run
+# Run full pipeline
+make run SCENE=/data/my-scene STEPS=15000 SR_SCALE=2
 
-# Example running with specific dataset
-docker run --rm -v $(PWD)/data:/data --gpus all nerf-trainer:v0.1.0 /data/my-scene
+# Run individual steps
+make train-nerf  SCENE=/data/my-scene
+make render-pairs SCENE=/data/my-scene RES="960 540"
+make train-sr    SCENE=/data/my-scene SCALE=2
 ```
 
-### 📁 Data Structure
-The container expects to find training images in the mounted directory:
-
+### 📁 Dataset Layout
 ```
-/data/
-└── my-scene/
-    ├── transforms.json    # Camera parameters
-    └── images/           # Training images
-        ├── 000.jpg
-        ├── 001.jpg
-        └── ...
+/data/my-scene/
+├── input/
+│   ├── transforms.json   # Camera params (from COLMAP)
+│   └── images/
+│       ├── 000.jpg
+│       └── ...
+├── models/
+│   ├── nerf.ingp         # Trained NeRF
+│   └── sr_x2.pth         # Super‑resolution model
+└── renders/
+    ├── lr/               # Low‑res renders
+    └── hr/               # High‑res renders
 ```
 
 ## ☁️ Kubernetes Deployment
 
 ```bash
-# Build, publish and deploy
+# Build, push and deploy
 make release
 
-# Only update Helm values
+# Patch Helm values only
 make update-values
 
-# Force ArgoCD sync
+# Force sync in Argo CD
 make sync
 ```
 
 ## 🔄 Release Pipeline
 
-1. Builds Docker image with CUDA support
-2. Publishes to container registry
-3. Updates Helm chart values
-4. Syncs deployment via ArgoCD
+1. Build CUDA image  
+2. Push to container registry  
+3. Update Helm chart values  
+4. Sync deployment through Argo CD
 
-## 📊 Monitoreo
+## 📊 Monitoring
 
-El despliegue puede monitorearse a través de:
-- Dashboard de ArgoCD
-- Logs del pod en Kubernetes
-- Métricas de GPU vía Prometheus
+### Metrics
+* **NeRF Training**
+  * Training loss
+  * PSNR
+  * GPU/VRAM usage
+  * Iteration time
+* **Super‑Resolution**
+  * L1/L2 loss
+  * PSNR/SSIM per image
+  * Perceptual quality scores
+
+### Interfaces
+* Argo CD dashboard (Job progress)
+* Prometheus + Grafana (GPU metrics)
+* Structured Kubernetes logs
 
 ## 🔍 Troubleshooting
 
-### Common Issues
-
-1. **GPU Not Available Error:**
-   ```
-   Error: no NVIDIA GPU device is present
-   ```
-   - Verify nvidia-device-plugin is installed in the cluster
-   - Check resource limits in values.yaml
-
-2. **Volume Error:**
-   ```
-   Unable to mount volumes: pvc "pvc-datos-nerf" not found
-   ```
-   - Ensure the PVC specified in values.yaml exists
-   - Check volume access permissions
-
-3. **Dataset Error:**
-   ```
-   Scene 'X' does not exist
-   ```
-   - Verify the dataset path exists in the PVC
-   - Check dataset structure (transforms.json + images/)
+| Issue | Fix |
+|-------|-----|
+| **GPU error**<br>`no NVIDIA GPU device is present` | Check `nvidia-device-plugin`, free GPU memory, validate CUDA version |
+| **Training OOM**<br>`CUDA out of memory` | Lower training resolution, reduce batch size, monitor VRAM |
+| **SR mismatch**<br>`Mismatch in image pairs` | Verify scale factor, check renders integrity, validate LR/HR resolutions |
