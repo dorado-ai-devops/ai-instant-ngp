@@ -19,7 +19,7 @@ fi
 # Standalone NGP Mode
 echo "==> Ejecutando pipeline NGP..."
 python3 /app/train_ngp.py \
-    --data "$DATA_PATH" --transforms "$TF" \
+    --data "$DATA_PATH"  \
     --steps "$N_STEPS" --snapshot "$SNAP"
 
 # Fast NeRF Mode
