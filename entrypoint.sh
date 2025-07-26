@@ -1,29 +1,35 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 export PYTHONPATH=/app/instant-ngp/build:${PYTHONPATH:-}
-DATA_PATH=${DATA_PATH:-/data/lego-ds}  
+
+DATA_PATH=${DATA_PATH:-/data/lego-ds}
 N_STEPS=${N_STEPS:-15000}
-echo "==> Ejecutando Instant-NGP"
-if ! python3 /app/instant-ngp/scripts/run.py \
-  --scene "$DATA_PATH" \
-  --n_steps $N_STEPS \
-  --save_snapshot "$DATA_PATH/model.ingp"; then
+FAST=${FAST:-0}
+FACTOR=${FACTOR:-2}
+LR_W=${LR_W:-960}; LR_H=${LR_H:-540}
 
-    echo "Entrenamiento fallido"
-    echo "Esperando 2 minutos para debug (PVC montado en ${DATA_PATH})..."
-    sleep 120
-
-    echo "Limpiando dataset tras fallo"
-    rm -rf /tmp/tmp_cloned
-    rm -rf "${DATA_PATH:?}/colmap"
-    rm -rf "${DATA_PATH:?}/images"
-    rm -f "${DATA_PATH:?}/transforms.json"
-
-    exit 1
+if [[ "$FAST" == "1" || "$FAST" == "true" ]]; then
+  TF="$DATA_PATH/transforms_lr.json"
+  SNAP="$DATA_PATH/model_lr.ingp"
+else
+  TF="$DATA_PATH/transforms.json"
+  SNAP="$DATA_PATH/model.ingp"
 fi
+RUN ln -s /usr/bin/python3 /usr/local/bin/python
+# Standalone NGP Mode
+echo "==> Ejecutando pipeline NGP..."
+python3 /app/train_ngp.py \
+    --data "$DATA_PATH" --transforms "$TF" \
+    --steps "$N_STEPS" --snapshot "$SNAP"
 
-echo "Entrenamiento completado."
-ls -lh "${DATA_PATH}/model.ingp"
-echo "Modelo guardado en ${DATA_PATH}/model.ingp"
-
-
+# Fast NeRF Mode
+if [[ "$FAST" == "1" || "$FAST" == "true" ]]; then
+  echo "==> Ejecutando pipeline Fast NeRF..."
+  python3 /app/render_pairs.py \
+        --snapshot "$SNAP" --out "$DATA_PATH" \
+        --lr "$LR_W" "$LR_H" --factor "$FACTOR"
+  python3 /app/train_sr.py \
+        --lr_dir "$DATA_PATH/renders_lr" \
+        --hr_dir "$DATA_PATH/renders_hr" \
+        --out "$DATA_PATH/sr_model.pth" --scale "$FACTOR"
+fi
