@@ -15,7 +15,7 @@ RUN git clone --recursive https://github.com/NVlabs/instant-ngp.git
 WORKDIR /app/instant-ngp
 RUN git checkout tags/v2.0 -b build-v2.0 && \
     git submodule update --init --recursive
-
+RUN sed -i 's|cam_matrix = f.get("transform_matrix", f\["transform_matrix_start"\])|cam_matrix = f.get("transform_matrix") or f.get("transform_matrix_start")|' scripts/run.py
 # ───────────────── Python deps ─────────────────
 RUN pip3 install --upgrade pip && pip3 install -r requirements.txt \
  && pip3 install commentjson numpy tqdm
