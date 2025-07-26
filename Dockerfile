@@ -17,13 +17,13 @@ RUN git checkout tags/v2.0 -b build-v2.0 && \
     git submodule update --init --recursive
 RUN sed -i 's|cam_matrix = f.get("transform_matrix", f\["transform_matrix_start"\])|cam_matrix = f.get("transform_matrix") or f.get("transform_matrix_start")|' scripts/run.py
 # ───────────────── Python deps ─────────────────
+RUN pip3 install "numpy<2"
 RUN pip3 install --upgrade pip && pip3 install -r requirements.txt \
- && pip3 install commentjson numpy tqdm
+ && pip3 install commentjson tqdm
 
 # ───────────────── PyTorch GPU ─────────────────
 RUN pip3 install --extra-index-url https://download.pytorch.org/whl/cu121 \
     torch==2.2.0+cu121 torchvision==0.17.0+cu121 einops
-
 
 # ───────────────── Build instant‑ngp ─────────────────
 RUN cmake . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DUSE_CUDA=ON -G Ninja && \
