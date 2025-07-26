@@ -101,20 +101,6 @@ El Jenkinsfile automatiza el proceso completo:
 - Soporte GPU vía nvidia-device-plugin
 - Recursos optimizados para entrenamiento
 
-## 🛠️ Uso Local
-
-```bash
-# Construir imagen
-make build
-
-# Ejecutar pipeline completo
-make run SCENE=/data/mi-escena STEPS=15000 SR_SCALE=2
-
-# Ejecutar pasos individualmente
-make train-nerf SCENE=/data/mi-escena
-make render-pairs SCENE=/data/mi-escena RES="960 540"
-make train-sr SCENE=/data/mi-escena SCALE=2
-```
 
 ### 📁 Estructura del Proyecto
 ```

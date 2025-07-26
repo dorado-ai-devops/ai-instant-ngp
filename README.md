@@ -38,22 +38,6 @@ ai-instant-ngp/
 * Kubernetes 1.28 + nvidia‑device‑plugin  
 * Docker registry (default `localhost:5000`)
 
----
-## 🔄 Pipeline rápido (CLI)
-
-```bash
-# 1. Build & push
-make build
-
-# 2. Ejecutar NeRF HR (clásico)
-make train-nerf   SCENE=/data/scene
-
-# 3. Ejecutar FastSR‑NeRF completo (LR + SR)
-make run          SCENE=/data/scene STEPS=8000 SR_SCALE=2 FAST=1
-```
-
----
-## 📚 Documentación completa
 
 * 🇪🇸 **[Guía en Español](./README_ES.md)** – despliegue local, CI/CD y troubleshooting.  
 * 🇺🇸 **[English Guide](./README_ENG.md)** – local run, CI/CD pipeline and troubleshooting.
