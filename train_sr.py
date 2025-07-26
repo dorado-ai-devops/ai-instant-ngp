@@ -59,7 +59,7 @@ model = torch.hub.load("eugenesiow/edsr-pytorch",
                        scale=args.scale, tiny=True).cuda()
 opt = torch.optim.Adam(model.parameters(), 1e-4)
 
-print(f"⏳ Entrenando SR ({len(loader)} batches/epoch, {args.epochs} epochs)")
+print(f"Entrenando SR ({len(loader)} batches/epoch, {args.epochs} epochs)")
 for epoch in range(args.epochs):
     pbar = tqdm(loader, leave=False)
     for lr, hr in pbar:
@@ -70,4 +70,4 @@ for epoch in range(args.epochs):
         pbar.set_description(f"ep {epoch:03d}  L1 {loss.item():.4f}")
 
 torch.save(model.state_dict(), args.out)
-print("✔ SR guardado en", args.out)
+print("SR guardado en", args.out)
