@@ -15,11 +15,11 @@ else
   TF="$DATA_PATH/transforms.json"
   SNAP="$DATA_PATH/model.ingp"
 fi
-
+RUN ln -s /usr/bin/python3 /usr/local/bin/python
 # Standalone NGP Mode
 echo "==> Ejecutando pipeline NGP..."
 python3 /app/train_ngp.py \
-    --data "$DATA_PATH" --transforms "$TF" \
+    --data "$DATA_PATH" \
     --steps "$N_STEPS" --snapshot "$SNAP"
 
 # Fast NeRF Mode
