@@ -37,8 +37,6 @@ COPY render_pairs.py /app/render_pairs.py
 
 COPY train_sr.py /app/train_sr.py
 
-COPY train_st.py /app/train_st.py
-
 COPY train_ngp.py /app/train_ngp.py
 
 ENTRYPOINT ["/entrypoint.sh"]
