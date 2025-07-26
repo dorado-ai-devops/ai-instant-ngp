@@ -86,21 +86,6 @@ python3 train_sr.py   --lr_dir /path/scene/renders_lr   --hr_dir /path/scene/ren
 * GPU via `nvidia-device-plugin`  
 * Resource‑optimized for training
 
-## 🛠️ Local Usage
-
-```bash
-# Build image
-make build
-
-# Run full pipeline
-make run SCENE=/data/my-scene STEPS=15000 SR_SCALE=2
-
-# Run individual steps
-make train-nerf  SCENE=/data/my-scene
-make render-pairs SCENE=/data/my-scene RES="960 540"
-make train-sr    SCENE=/data/my-scene SCALE=2
-```
-
 ### 📁 Dataset Layout
 ```
 /data/my-scene/
