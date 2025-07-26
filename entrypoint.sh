@@ -1,29 +1,36 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 export PYTHONPATH=/app/instant-ngp/build:${PYTHONPATH:-}
-DATA_PATH=${DATA_PATH:-/data/lego-ds}  
+
+DATA_PATH=${DATA_PATH:-/data/lego-ds}
 N_STEPS=${N_STEPS:-15000}
-echo "==> Ejecutando Instant-NGP"
+FAST=${FAST:-0}                    
+
+
+if [[ "$FAST" == "1" || "$FAST" == "true" ]]; then
+    echo "==> FastSR‑NeRF (LR)"
+    SCENE="$DATA_PATH"                            
+    TF_FILE="$DATA_PATH/transforms_lr.json"      
+    SNAPSHOT="$DATA_PATH/model_lr.ingp"
+else
+    echo "==> NeRF estándar (HR)"
+    SCENE="$DATA_PATH"
+    TF_FILE="$DATA_PATH/transforms.json"
+    SNAPSHOT="$DATA_PATH/model.ingp"
+fi
+
+
+echo "==> Ejecutando Instant‑NGP"
 if ! python3 /app/instant-ngp/scripts/run.py \
-  --scene "$DATA_PATH" \
-  --n_steps $N_STEPS \
-  --save_snapshot "$DATA_PATH/model.ingp"; then
+        --scene "$SCENE" \
+        --transforms "$TF_FILE" \
+        --n_steps "$N_STEPS" \
+        --save_snapshot "$SNAPSHOT"; then
 
-    echo "Entrenamiento fallido"
-    echo "Esperando 2 minutos para debug (PVC montado en ${DATA_PATH})..."
+    echo "Entrenamiento fallido; dataset en ${DATA_PATH} listo para depurar (2 min)…"
     sleep 120
-
-    echo "Limpiando dataset tras fallo"
-    rm -rf /tmp/tmp_cloned
-    rm -rf "${DATA_PATH:?}/colmap"
-    rm -rf "${DATA_PATH:?}/images"
-    rm -f "${DATA_PATH:?}/transforms.json"
-
     exit 1
 fi
 
 echo "Entrenamiento completado."
-ls -lh "${DATA_PATH}/model.ingp"
-echo "Modelo guardado en ${DATA_PATH}/model.ingp"
-
-
+ls -lh "$SNAPSHOT"
