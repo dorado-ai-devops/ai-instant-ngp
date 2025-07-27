@@ -6,8 +6,8 @@ DATA_PATH=${DATA_PATH:-/data/lego-ds}
 N_STEPS=${N_STEPS:-15000}
 FAST=${FAST:-0}  
 FACTOR=${FACTOR:-2}
-LR_W=${LR_W:-960}
-LR_H=${LR_H:-540}
+LR_W=${LR_W:-$((4000 / FACTOR))}
+LR_H=${LR_H:-$((3000 / FACTOR))}
 
 
 if [[ "$FAST" == "1" || "$FAST" == "true" ]]; then
@@ -31,10 +31,10 @@ if [[ "$FAST" == "1" || "$FAST" == "true" ]]; then
             --snapshot "$SNAP" --out "$DATA_PATH" \
             --lr "$LR_W" "$LR_H" --factor "$FACTOR"
 
-    echo "==> Entrenando super‑resolución ..."
-    python3 /app/train_sr.py \
-            --lr_dir "$DATA_PATH/renders_lr" \
-            --hr_dir "$DATA_PATH/renders_hr" \
-            --out    "$DATA_PATH/sr_model.pth" \
-            --scale  "$FACTOR"
+    echo "==> Entrenando super‑resolución..."
+    /venv_sr/bin/python3 /app/train_sr.py \
+        --lr_dir "$DATA_PATH/renders_lr" \
+        --hr_dir "$DATA_PATH/renders_hr" \
+        --out    "$DATA_PATH/sr_model.pth" \
+        --scale  "$FACTOR"
 fi
