@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
+RUN git clone https://github.com/thstkdgus35/EDSR-PyTorch.git edsr
 
 RUN git clone --recursive https://github.com/dorado-ai-devops/instant-ngp.git
 WORKDIR /app/instant-ngp

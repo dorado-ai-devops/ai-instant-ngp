@@ -2,12 +2,6 @@
 """
 train_sr.py  --lr_dir <carpeta renders_lr>  --hr_dir <carpeta renders_hr>
              --out <modelo.pth>             --scale 2|4
-Ejemplo:
-  python3 train_sr.py \
-      --lr_dir /data/scene/renders_lr \
-      --hr_dir /data/scene/renders_hr \
-      --out    /data/scene/sr_model.pth \
-      --scale  2
 """
 
 import argparse, random, torch, torch.nn.functional as F
@@ -16,6 +10,7 @@ from torch.utils.data import Dataset, DataLoader
 from pathlib import Path
 from PIL import Image
 from tqdm import tqdm
+import sys
 
 # ───────────── args ─────────────
 p = argparse.ArgumentParser()
@@ -40,8 +35,8 @@ class NerfSRDataset(Dataset):
     def __len__(self): return len(self.lr)
 
     def __getitem__(self, idx):
-        lr = self.to_tensor(Image.open(self.lr[idx]))
-        hr = self.to_tensor(Image.open(self.hr[idx]))
+        lr = self.to_tensor(Image.open(self.lr[idx]).convert("RGB"))
+        hr = self.to_tensor(Image.open(self.hr[idx]).convert("RGB"))
         _, h, w = lr.shape
         x = random.randint(0, w - self.patch)
         y = random.randint(0, h - self.patch)
@@ -53,12 +48,29 @@ class NerfSRDataset(Dataset):
 ds = NerfSRDataset(args.lr_dir, args.hr_dir, patch=args.patch)
 loader = DataLoader(ds, batch_size=args.batch, shuffle=True, num_workers=4)
 
-# ───────────── Modelo EDSR‑tiny ───────────
-model = torch.hub.load("eugenesiow/edsr-pytorch",
-                       "edsr", pretrained=False,
-                       scale=args.scale, tiny=True).cuda()
+#EDSR local ─────────────
+
+sys.path.append("/app/edsr/src")
+
+from option import args as edsr_args
+from model import make_model
+
+
+edsr_args.scale = [args.scale]
+edsr_args.model = "EDSR"
+edsr_args.n_resblocks = 8      
+edsr_args.n_feats = 64
+edsr_args.res_scale = 1
+edsr_args.rgb_range = 255
+edsr_args.n_colors = 3
+edsr_args.no_upsampling = False
+edsr_args.ext = "img"
+edsr_args.pre_train = ""
+
+model = make_model(edsr_args).cuda()
 opt = torch.optim.Adam(model.parameters(), 1e-4)
 
+# Entrenar ─────────────
 print(f"Entrenando SR ({len(loader)} batches/epoch, {args.epochs} epochs)")
 for epoch in range(args.epochs):
     pbar = tqdm(loader, leave=False)
