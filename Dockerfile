@@ -11,11 +11,9 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # ───────────────── instant‑ngp ─────────────────
-RUN git clone --recursive https://github.com/NVlabs/instant-ngp.git
+RUN git clone --recursive https://github.com/dorado-ai-devops/instant-ngp.git
 WORKDIR /app/instant-ngp
-RUN git checkout tags/v2.0 -b build-v2.0 && \
-    git submodule update --init --recursive
-RUN sed -i 's|cam_matrix = f.get("transform_matrix", f\["transform_matrix_start"\])|cam_matrix = f.get("transform_matrix") or f.get("transform_matrix_start")|' scripts/run.py
+RUN git checkout fix-transform-matrix-keyerror && git submodule update --init --recursive
 # ───────────────── Python deps ─────────────────
 RUN pip3 install "numpy<2"
 RUN pip3 install --upgrade pip && pip3 install -r requirements.txt \
