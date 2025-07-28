@@ -11,6 +11,7 @@ cmd = [
     "--scene", args.data,
     "--n_steps", str(args.steps),
     "--save_snapshot", args.snapshot,
+    "--nerf_compatibility",
 ]
 print("NGP CMD:", " ".join(cmd)); sys.stdout.flush()
 subprocess.check_call(cmd)
